@@ -12,7 +12,7 @@ def load_pickle(path):
 
 
 if __name__ == '__main__':
-    choose_model = 'mhred' # mhred
+    choose_model = 'trans' # mhred
     if choose_model == 'trans':
         config = get_trans_config(mode='train')
         val_config = get_trans_config(mode='valid')
@@ -61,4 +61,5 @@ if __name__ == '__main__':
     solver = solver(config, train_data_loader, eval_data_loader, vocab=vocab, is_train=True)
 
     solver.build()
-    solver.train()
+    epoch_loss = solver.train()
+    print(epoch_loss)

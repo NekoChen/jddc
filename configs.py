@@ -175,14 +175,14 @@ def get_trans_config(parse=True, **optional_kwargs):
     # Train
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--eval_batch_size', type=int, default=4)
-    parser.add_argument('--n_epoch', type=int, default=15)
+    parser.add_argument('--n_epoch', type=int, default=50)
     # 使用adam作为优化器，预热中随步数线性增加学习速率，class ScheduledOptim()
     parser.add_argument('-warmup','--n_warmup_steps', type=int, default=4000)
     parser.add_argument('-lr_mul', type=float, default=2.0)
     parser.add_argument('--optimizer', type=str, default='ScheduledOptim')
     # parser.add_argument('--learning_rate', type=float, default=1e-4)
 
-    parser.add_argument('--learning_rate', type=float, default=1e-4)
+    parser.add_argument('--learning_rate', type=float, default=2e-4)
     parser.add_argument('--optimizer_Adam', type=str, default='Adam')
 
     parser.add_argument('--clip', type=float, default=1.0)
@@ -250,6 +250,8 @@ class Trans_Config(object):
         """Configuration Class: set kwargs as class attributes with setattr"""
         if kwargs is not None:
             for key, value in kwargs.items():
+                if key == 'optimizer_Adam':
+                    value = optimizer_dict[value]
                 setattr(self, key, value)
 
         # Dataset directory: ex) ./datasets/cornell/

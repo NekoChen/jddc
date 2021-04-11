@@ -37,19 +37,22 @@ class Solver(object):
                 # 初始化在model创建时完成
                 # orthogonal initialiation for hidden weights
                 # input gate bias for GRUs
-                # if self.config.mode == 'train' and self.config.checkpoint is None:
-                #     print('Parameter initiailization')
-                #     for name, param in self.model.named_parameters():
-                #         if 'weight_hh' in name:
-                #             print('\t' + name)
-                #             nn.init.orthogonal_(param)
-                #
-                #         # bias_hh is concatenation of reset, input, new gates
-                #         # only set the input gate bias to 2.0
-                #         if 'bias_hh' in name:
-                #             print('\t' + name)
-                #             dim = int(param.size(0) / 3)
-                #             param.data[dim:2 * dim].fill_(2.0)
+                if self.config.mode == 'train' and self.config.checkpoint is None:
+                    print('Parameter initiailization')
+                    for name, param in self.model.named_parameters():
+                        # if 'weight_hh' in name:
+                        if 'weight' in name:
+                            # print('\t' + name)
+                            if param.dim() > 1:
+                                nn.init.orthogonal_(param)
+
+                        # bias_hh is concatenation of reset, input, new gates
+                        # only set the input gate bias to 2.0
+                        # if 'bias_hh' in name:
+                        if 'bias' in name:
+                            # print('\t' + name)
+                            dim = int(param.size(0) / 3)
+                            param.data[dim:2 * dim].fill_(2.0)
 
             if torch.cuda.is_available() and cuda:
                 self.model.cuda()
@@ -64,10 +67,13 @@ class Solver(object):
 
             if self.is_train:
                 # self.writer = TensorboardWriter(self.config.logdir)
-                self.optimizer = ScheduledOptim(
-                    optim.Adam(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09),
-                    self.config.lr_mul, self.config.d_model, self.config.n_warmup_steps)
-        else:
+                # self.optimizer = ScheduledOptim(
+                #     optim.Adam(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09),
+                #     self.config.lr_mul, self.config.d_model, self.config.n_warmup_steps)
+                self.optimizer = self.config.optimizer_Adam(
+                    self.model.parameters(),
+                    lr=self.config.learning_rate)
+        elif self.config.model == 'MHRED':
             if self.model is None:
                 self.model = getattr(models, self.config.model)(self.config)
 
@@ -227,7 +233,7 @@ class Solver(object):
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.clip)
 
                 # Run optimizer
-                # self.optimizer.step_and_update_lr()
+
                 self.optimizer.step()
 
             epoch_loss = np.sum(batch_loss_history) / n_total_words
