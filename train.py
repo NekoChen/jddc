@@ -12,7 +12,7 @@ def load_pickle(path):
 
 
 if __name__ == '__main__':
-    choose_model = 'trans' # mhred
+    choose_model = 'mhred' # mhred
     if choose_model == 'trans':
         config = get_trans_config(mode='train')
         val_config = get_trans_config(mode='valid')

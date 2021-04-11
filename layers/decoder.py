@@ -166,7 +166,8 @@ class BaseRNNDecoder(nn.Module):
             # score: [batch_size, beam_size]
             # top_k_idx: [batch_size, beam_size]
             #       each element of top_k_idx [0 ~ beam x vocab)
-
+            score1 = score.view(batch_size,-1)
+            score2_topkids = score1.topk(self.beam_size,dim=1)
             score, top_k_idx = score.view(batch_size, -1).topk(self.beam_size, dim=1)
 
             # Get token ids with remainder after dividing by top_k_idx
@@ -181,7 +182,7 @@ class BaseRNNDecoder(nn.Module):
             #       Later used as back-pointer at backtracking
             #       Each element is beam index: 0 ~ beam_size
             #                     + position index: 0 ~ beam_size x (batch_size-1)
-            beam_idx = top_k_idx / self.vocab_size  # [batch_size, beam_size]
+            beam_idx = top_k_idx // self.vocab_size  # [batch_size, beam_size]
             top_k_pointer = (beam_idx + batch_position.unsqueeze(1)).view(-1)
 
             # Select next h (size doesn't change)
