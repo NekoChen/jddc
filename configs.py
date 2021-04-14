@@ -195,6 +195,7 @@ def get_trans_config(parse=True, **optional_kwargs):
     parser.add_argument('--temperature', type=float, default=1.0)
     parser.add_argument('--beam_size', type=int, default=5)
 
+
     # Model
     # parser.add_argument('--model', type=str, default='MHRED',
     #                     help='model type, the default one is MHRED')
@@ -216,7 +217,9 @@ def get_trans_config(parse=True, **optional_kwargs):
     parser.add_argument('-n_position',type=str,default=200)
 
     parser.add_argument('-pad_idx', type=int,default=0)
-
+    parser.add_argument('-unk_idx', type=int,default=1)
+    parser.add_argument('-sos_idx', type=int,default=2)
+    parser.add_argument('-eos_idx', type=int,default=3)
     # Generation
     parser.add_argument('--n_context', type=int, default=1)
     parser.add_argument('--n_sample_step', type=int, default=1)

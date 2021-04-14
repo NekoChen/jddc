@@ -35,24 +35,6 @@ class Solver(object):
                 self.model = getattr(models, self.config.model)(self.config)
 
                 # 初始化在model创建时完成
-                # orthogonal initialiation for hidden weights
-                # input gate bias for GRUs
-                if self.config.mode == 'train' and self.config.checkpoint is None:
-                    print('Parameter initiailization')
-                    for name, param in self.model.named_parameters():
-                        # if 'weight_hh' in name:
-                        if 'weight' in name:
-                            # print('\t' + name)
-                            if param.dim() > 1:
-                                nn.init.orthogonal_(param)
-
-                        # bias_hh is concatenation of reset, input, new gates
-                        # only set the input gate bias to 2.0
-                        # if 'bias_hh' in name:
-                        if 'bias' in name:
-                            # print('\t' + name)
-                            dim = int(param.size(0) / 3)
-                            param.data[dim:2 * dim].fill_(2.0)
 
             if torch.cuda.is_available() and cuda:
                 self.model.cuda()
@@ -174,6 +156,7 @@ class Solver(object):
             batch_loss_history = []
             self.model.train()
             n_total_words = 0
+            n_total_corrects = 0
             for batch_i, (conversations, conversation_length, sentence_length, images, images_length) in enumerate(tqdm(self.train_data_loader, ncols=80)):
                 # conversations: (batch_size) list of conversations
                 #   conversation: list of sentences
@@ -213,7 +196,7 @@ class Solver(object):
                     input_images_length,
                     decode=False)
 
-                batch_loss, n_words = masked_cross_entropy(
+                batch_loss, n_words,n_correct = masked_cross_entropy(
                     sentence_logits,
                     target_sentences,
                     target_sentence_length)
@@ -221,10 +204,11 @@ class Solver(object):
                 assert not isnan(batch_loss.item())
                 batch_loss_history.append(batch_loss.item())
                 n_total_words += n_words.item()
+                n_total_corrects += n_correct.item()
 
-                if batch_i % self.config.print_every == 0:
-                    tqdm.write(
-                        f'Epoch: {epoch_i+1}, iter {batch_i}: loss = {batch_loss.item()/ n_words.item():.3f}')
+                # if batch_i % self.config.print_every == 0:
+                #     tqdm.write(
+                #         f'Epoch: {epoch_i+1}, iter {batch_i}: loss = {batch_loss.item()/ n_words.item():.3f}')
 
                 # Back-propagation
                 batch_loss.backward()
@@ -237,10 +221,11 @@ class Solver(object):
                 self.optimizer.step()
 
             epoch_loss = np.sum(batch_loss_history) / n_total_words
+            epoch_accuracy = (n_total_corrects / n_total_words) * 100
             epoch_loss_history.append(epoch_loss)
             self.epoch_loss = epoch_loss
 
-            print_str = f'Epoch {epoch_i+1} loss average: {epoch_loss:.3f}'
+            print_str = f'Epoch {epoch_i+1} loss average: {epoch_loss:.3f} accuracy average:{epoch_accuracy: .3f}%'
             print(print_str)
 
             if epoch_i % self.config.save_every_epoch == 0:
@@ -290,6 +275,7 @@ class Solver(object):
         self.model.eval()
         batch_loss_history = []
         n_total_words = 0
+        n_total_corrects = 0
         for batch_i, (conversations, conversation_length, sentence_length, images, images_length) in enumerate(tqdm(self.eval_data_loader, ncols=80)):
             # conversations: (batch_size) list of conversations
             #   conversation: list of sentences
@@ -319,13 +305,13 @@ class Solver(object):
                 input_images_length = to_var(torch.LongTensor(input_images_length))
 
 
-            if batch_i == 0:
-                self.generate_sentence(input_sentences,
-                                       input_sentence_length,
-                                       input_conversation_length,
-                                       target_sentences,
-                                       input_images,
-                                       input_images_length)
+            # if batch_i == 0:
+            #     self.generate_sentence(input_sentences,
+            #                            input_sentence_length,
+            #                            input_conversation_length,
+            #                            target_sentences,
+            #                            input_images,
+            #                            input_images_length)
 
             sentence_logits = self.model(
                 input_sentences,
@@ -336,7 +322,7 @@ class Solver(object):
                 input_images_length,
                 decode=False)
 
-            batch_loss, n_words = masked_cross_entropy(
+            batch_loss, n_words,n_correct = masked_cross_entropy(
                 sentence_logits,
                 target_sentences,
                 target_sentence_length)
@@ -344,10 +330,11 @@ class Solver(object):
             assert not isnan(batch_loss.item())
             batch_loss_history.append(batch_loss.item())
             n_total_words += n_words.item()
+            n_total_corrects += n_correct.item()
 
         epoch_loss = np.sum(batch_loss_history) / n_total_words
-
-        print_str = f'Validation loss: {epoch_loss:.3f}\n'
+        epoch_accuracy = (n_total_corrects / n_total_words) * 100
+        print_str = f'Validation loss: {epoch_loss:.3f},accuracy average:{epoch_accuracy: .3f}%\n'
         print(print_str)
 
         return epoch_loss
