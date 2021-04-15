@@ -66,7 +66,7 @@ def do_preprocess(dir, sess_turn):
     train_items = list()
     dev_items = list()
 
-    for file, item_list in [('data_train_sm.txt', train_items), ('data_dev_sm.txt', dev_items)]:
+    for file, item_list in [('data_train_md.txt', train_items), ('data_dev_md.txt', dev_items)]:
         with open(dir+file,encoding='UTF-8', errors='ignore') as f:
             lines = f.readlines()
 

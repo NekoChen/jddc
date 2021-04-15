@@ -261,7 +261,7 @@ class Solver(object):
         with open(os.path.join(self.config.save_path, 'samples.txt'), 'a') as f:
             f.write(f'<Epoch {self.epoch_i}>\n\n')
 
-            tqdm.write('\n<Samples>')
+            # tqdm.write('\n<Samples>')
             for input_sent, target_sent, output_sent in zip(input_sentences, target_sentences, generated_sentences):
                 input_sent = self.vocab.decode(input_sent)
                 target_sent = self.vocab.decode(target_sent)
@@ -270,7 +270,7 @@ class Solver(object):
                                'Ground truth: ' + target_sent,
                                'Generated response: ' + output_sent + '\n'])
                 f.write(s + '\n')
-                print(s)
+                # print(s)
             print('')
 
     def evaluate(self):
@@ -307,13 +307,13 @@ class Solver(object):
                 input_images_length = to_var(torch.LongTensor(input_images_length))
 
 
-            # if batch_i == 0:
-            #     self.generate_sentence(input_sentences,
-            #                            input_sentence_length,
-            #                            input_conversation_length,
-            #                            target_sentences,
-            #                            input_images,
-            #                            input_images_length)
+            if batch_i == 0:
+                self.generate_sentence(input_sentences,
+                                       input_sentence_length,
+                                       input_conversation_length,
+                                       target_sentences,
+                                       input_images,
+                                       input_images_length)
 
             sentence_logits = self.model(
                 input_sentences,

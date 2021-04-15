@@ -161,7 +161,6 @@ if __name__ == '__main__':
             print('Save Vocabulary...')
             vocab.add_dataframe(conversations)
             vocab.update(max_size=max_vocab_size, min_freq=min_freq)
-            vocab.freqdist.plot(10)
             vocab.pickle(datasets_dir.joinpath('word2id.pkl'), datasets_dir.joinpath('id2word.pkl'))
 
     print('Done!')
