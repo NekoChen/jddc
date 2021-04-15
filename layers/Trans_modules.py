@@ -8,21 +8,28 @@ import torch
 import torch.nn as nn
 import math
 import torch.nn.functional as F
-class ScaledDotProductAttention(nn.Module):
-    def __init__(self, attn_dropout=0.1):
-        super().__init__()
-        self.attn_dropout = nn.Dropout(attn_dropout)
 
-    def forward(self, query, key, value,mask=None):
-        "Compute 'Scaled Dot Product Attention'"
-        d_k = query.size(-1)
-        attn = torch.matmul(query,key.transpose(-2,-1)) \
-               / math.sqrt(d_k)
+
+class ScaledDotProductAttention(nn.Module):
+    ''' Scaled Dot-Product Attention '''
+
+    def __init__(self, temperature, attn_dropout=0.1):
+        super().__init__()
+        self.temperature = temperature
+        self.dropout = nn.Dropout(attn_dropout)
+        # 里面为了防止或减轻过拟合而使用的函数，它一般用在全连接层
+        # Dropout就是在不同的训练过程中随机扔掉一部分神经元。
+        # 也就是让某个神经元的激活值以一定的概率p，让其停止工作，
+        # 这次训练过程中不更新权值，也不参加神经网络的计算
+
+    def forward(self, q, k, v, mask=None):
+        # 为什么k.transpose(2, 3)待定
+        attn = torch.matmul(q / self.temperature, k.transpose(2, 3))
+
         if mask is not None:
             attn = attn.masked_fill(mask == 0, -1e9)
 
-        p_attn = F.softmax(attn, dim = -1)
-        if self.attn_dropout is not None:
-            p_attn = self.attn_dropout(p_attn)
-        output = torch.matmul(p_attn, value)
-        return output, p_attn
+        attn = self.dropout(F.softmax(attn, dim=-1))
+        output = torch.matmul(attn, v)
+
+        return output, attn

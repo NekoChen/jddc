@@ -6,12 +6,11 @@ import torch.nn.functional as F
 from .Trans_modules import ScaledDotProductAttention
 
 class MultiHeadAttention(nn.Module):
-    # “多头”机制能让模型考虑到不同位置的Attention
-    # 另外“多头”Attention可以在不同的子空间表示不一样的关联关系
-    # MultiHead(Q, K, V) = Concat(head1, ... , headh)Wo
-    # headi = attn(QWq, KWk, VWv)
-    def __init__(self,n_head, d_model, d_k, d_v, dropout=0.1):
+    ''' Multi-Head Attention module '''
+
+    def __init__(self, n_head, d_model, d_k, d_v, dropout=0.1):
         super().__init__()
+
         self.n_head = n_head
         self.d_k = d_k
         self.d_v = d_v
@@ -21,10 +20,11 @@ class MultiHeadAttention(nn.Module):
         self.w_vs = nn.Linear(d_model, n_head * d_v, bias=False)
         self.fc = nn.Linear(n_head * d_v, d_model, bias=False)
 
-        self.attention = ScaledDotProductAttention()
+        self.attention = ScaledDotProductAttention(temperature=d_k ** 0.5)
 
         self.dropout = nn.Dropout(dropout)
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
+
 
     def forward(self, q, k, v, mask=None):
 
@@ -57,15 +57,15 @@ class MultiHeadAttention(nn.Module):
 
         return q, attn
 
+
 class PositionwiseFeedForward(nn.Module):
     ''' A two-feed-forward-layer module '''
-    # 全连接前馈网络
-    # 包括两个线性变换+ReLu作为激活
-    def __init__(self, d_model, d_hid, dropout=0.1):
+
+    def __init__(self, d_in, d_hid, dropout=0.1):
         super().__init__()
-        self.w_1 = nn.Linear(d_model, d_hid) # position-wise
-        self.w_2 = nn.Linear(d_hid, d_model) # position-wise
-        self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
+        self.w_1 = nn.Linear(d_in, d_hid) # position-wise
+        self.w_2 = nn.Linear(d_hid, d_in) # position-wise
+        self.layer_norm = nn.LayerNorm(d_in, eps=1e-6)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
@@ -75,6 +75,7 @@ class PositionwiseFeedForward(nn.Module):
         x = self.w_2(F.relu(self.w_1(x)))
         x = self.dropout(x)
         x += residual
+
         x = self.layer_norm(x)
 
         return x

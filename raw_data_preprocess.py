@@ -206,6 +206,7 @@ def gen_train_dev_set(dir, train_items, dev_items):
             ctx_list = ctx.split('@@@')
 
             for sent_i in ctx_list:
+                img_flag = False
                 if sent_i == '':
                     continue
 
@@ -216,38 +217,48 @@ def gen_train_dev_set(dir, train_items, dev_items):
                 for sent_j in sent_i_list:
 
                     if sent_j.endswith('.jpg'):
-                        img_list.append(sent_j)
+                        if not img_flag:
+                            img_list.append(sent_j)
                         sent_j = '<img>'
+                        img_flag = True
                     else:
-                        img_list.append('NULL')
                         sent_j = clean_text(sent_j)
 
                     sent_seg = ' '.join(tokenize_spt(sent_j.strip()))
 
                     if sent_seg:
-                        src_str = src_str + sent_seg + '</s>'
+                        src_str = src_str + ' ' + sent_seg
                     else:
                         img_list.pop(-1)
+                src_str = src_str + '</s>'# **
+                if not img_flag:
+                    img_list.append('NULL')
 
+            img_flag = False
             ques_list = ques.split('|||')
 
             for sent in ques_list:
                 if sent.endswith('.jpg'):
-                    img_list.append(sent)
+                    if not img_flag:
+                        img_list.append(sent)
                     sent = '<img>'
+                    img_flag = True
                 else:
-                    img_list.append('NULL')
                     sent = clean_text(sent)
+                #     img_list.append('NULL')
+
 
                 sent = sent.strip()
                 if sent:
                     sent_seg = ' '.join(tokenize_spt(sent.strip()))
-                    src_str = src_str + sent_seg + '</s>'
+                    src_str = src_str + ' ' + sent_seg
                 else:
                     img_list.pop(-1)
+            src_str = src_str + '</s>'# **
+            if not img_flag:
+                img_list.append('NULL')
 
             ans_list = ans.split('|||')
-
             for sent in ans_list:
                 if sent.endswith('jpg'):
                     sent = '<img>'

@@ -35,6 +35,8 @@ class Solver(object):
                 self.model = getattr(models, self.config.model)(self.config)
 
                 # 初始化在model创建时完成
+                # orthogonal initialiation for hidden weights
+                # input gate bias for GRUs
 
             if torch.cuda.is_available() and cuda:
                 self.model.cuda()
