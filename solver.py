@@ -167,7 +167,7 @@ class Solver(object):
                 # sentence_length: (batch_size) list of conversation list of sentence_lengths
 
                 input_conversations = [conv[:-1] for conv in conversations]
-                target_conversations = [conv[1:] for conv in conversations]
+                target_conversations = [conv[:-1] for conv in conversations]
 
                 # flatten input and target conversations
                 input_sentences = [sent for conv in input_conversations for sent in conv]
@@ -216,7 +216,8 @@ class Solver(object):
                 batch_loss.backward()
 
                 # # Gradient cliping
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.clip)
+                if(self.config.model == 'MHRED'):
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.clip)
 
                 # Run optimizer
 
@@ -307,13 +308,13 @@ class Solver(object):
                 input_images_length = to_var(torch.LongTensor(input_images_length))
 
 
-            if batch_i == 0:
-                self.generate_sentence(input_sentences,
-                                       input_sentence_length,
-                                       input_conversation_length,
-                                       target_sentences,
-                                       input_images,
-                                       input_images_length)
+            # if batch_i == 0:
+            #     self.generate_sentence(input_sentences,
+            #                            input_sentence_length,
+            #                            input_conversation_length,
+            #                            target_sentences,
+            #                            input_images,
+            #                            input_images_length)
 
             sentence_logits = self.model(
                 input_sentences,

@@ -9,3 +9,4 @@ from .Trans_Models import *
 from .Trans_modules import *
 from .Trans_optim import *
 from  .Trans_sublayers import *
+from .TransformerModules import *

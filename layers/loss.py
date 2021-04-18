@@ -2,6 +2,7 @@ import torch
 from torch.nn import functional as F
 import torch.nn as nn
 from utils import to_var, sequence_mask
+import copy
 
 
 # https://gist.github.com/jihunchoi/f1434a77df9db1bb337417854b398df1
@@ -46,14 +47,15 @@ def masked_cross_entropy(logits, target, length, per_example=False):
     # correct = n_correct * mask.float()
     # word-wise cross entropy
     # loss = losses.sum() / length.float().sum()
-
-    logits_flat = logits_flat.max(1)[1]
-    pad_idx = 0
-    non_pad_mask = target_flat.ne(pad_idx)
-    non_pad_mask = non_pad_mask.view(-1)
-    target_flat = target_flat.view(-1)
-    n_correct = logits_flat.eq(target_flat)
-    n_correct = n_correct.masked_select(non_pad_mask).sum()
+    with torch.no_grad():
+        logits_for_accuracy_flat = logits_flat
+        logits_for_accuracy_flat = logits_for_accuracy_flat.max(1)[1]
+        pad_idx = 0
+        non_pad_mask = target_flat.ne(pad_idx)
+        non_pad_mask = non_pad_mask.view(-1)
+        target_flat = target_flat.view(-1)
+        n_correct = logits_for_accuracy_flat.eq(target_flat)
+        n_correct = n_correct.masked_select(non_pad_mask).sum()
 
     if per_example:
         # loss: [batch_size]

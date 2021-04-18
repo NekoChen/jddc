@@ -89,8 +89,8 @@ def get_config(parse=True, **optional_kwargs):
     parser.add_argument('--mode', type=str, default='train')
 
     # Train
-    parser.add_argument('--batch_size', type=int, default=32)
-    parser.add_argument('--eval_batch_size', type=int, default=32)
+    parser.add_argument('--batch_size', type=int, default=4)
+    parser.add_argument('--eval_batch_size', type=int, default=4)
     parser.add_argument('--n_epoch', type=int, default=10)
     parser.add_argument('--learning_rate', type=float, default=1e-4)
     parser.add_argument('--optimizer', type=str, default='Adam')
@@ -173,8 +173,8 @@ def get_trans_config(parse=True, **optional_kwargs):
     parser.add_argument('--mode', type=str, default='train')
 
     # Train
-    parser.add_argument('--batch_size', type=int, default=4)
-    parser.add_argument('--eval_batch_size', type=int, default=4)
+    parser.add_argument('--batch_size', type=int, default=1)
+    parser.add_argument('--eval_batch_size', type=int, default=1)
     parser.add_argument('--n_epoch', type=int, default=50)
     # 使用adam作为优化器，预热中随步数线性增加学习速率，class ScheduledOptim()
     parser.add_argument('-warmup','--n_warmup_steps', type=int, default=4000)
